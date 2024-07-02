@@ -1,0 +1,66 @@
+Écrire le script (c_and_f.sh, par exemple) :
+
+=> vi c_and_f.sh
+1..........
+#!/bin/bash
+
+LOG_FILE="/path/to/execution.log"
+FILE_PATH="/path/to/server.conf"
+REPO_URL="https://github.com/your/repo.git"
+TEMP_DIR="/path/to/temp_repo"
+
+# Vérifier si le fichier server.conf existe
+if [ ! -f "$FILE_PATH" ]; then
+    echo "$(date): server.conf does not exist. Cloning repository..." >> "$LOG_FILE"
+    # Cloner le dépôt dans un répertoire temporaire
+    git clone "$REPO_URL" "$TEMP_DIR" >> "$LOG_FILE" 2>&1
+
+    # Copier le fichier server.conf du dépôt vers le répertoire cible
+    if [ -f "$TEMP_DIR/server.conf" ]; then
+        cp "$TEMP_DIR/server.conf" "$FILE_PATH"
+        echo "$(date): server.conf successfully copied." >> "$LOG_FILE"
+    else
+        echo "$(date): server.conf not found in the repository." >> "$LOG_FILE"
+    fi
+
+    # Supprimer le répertoire temporaire
+    rm -rf "$TEMP_DIR"
+else
+    echo "$(date): server.conf already exists." >> "$LOG_FILE"
+fi
+
+2...........
+Rendre le script exécutable :
+chmod +x /c_and_f.sh
+
+5...........
+Configurer une tâche cron pour exécuter le script périodiquement. Ouvrez le fichier crontab pour l'édition :
+
+crontab -e
+
+6...........
+Ajouter une entrée crontab pour exécuter le script toutes les minutes (ou à un intervalle de votre choix) :
+
+* * * * * /path/to/check_and_fetch.sh
+Cela exécutera le script toutes les minutes. Vous pouvez ajuster cette ligne pour changer la fréquence.
+
+5...........
+
+Vérifier les logs en temps réel avec tail -f :
+=> tail -f /path/to/execution.log
+
+La reponse doit ressembler à ça à peu pres
+
+[ec2-user@ip-172-31-21-237 ~]$ tail -f execution2.log
+Tue Jul  2 02:42:01 UTC 2024: server.conf not found. Cloning repository...
+fatal: could not create leading directories of '/path/to/repo': Permission denied
+cp: cannot stat '/path/to/repo/path/to/server.conf': No such file or directory
+Tue Jul  2 02:42:01 UTC 2024: server.conf downloaded and placed in /path/to/server.conf
+Tue Jul  2 02:43:01 UTC 2024: server.conf not found. Cloning repository...
+fatal: could not create leading directories of '/path/to/repo': Permission denied
+cp: cannot stat '/path/to/repo/path/to/server.conf': No such file or directory
+Tue Jul  2 02:43:01 UTC 2024: server.conf downloaded and placed in /path/to/server.conf
+Tue Jul  2 02:44:01 UTC 2024: server.conf not found. Cloning repository...
+fatal: could not create leading directories of '/path/to/repo': Permission denied
+
+
